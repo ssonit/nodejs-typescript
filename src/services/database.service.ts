@@ -18,8 +18,9 @@ class DatabaseService {
       await this.db.command({ ping: 1 })
 
       console.log('Connection successfully')
-    } finally {
-      await this.client.close()
+    } catch (err) {
+      console.log('Connection failed')
+      throw err
     }
   }
 
