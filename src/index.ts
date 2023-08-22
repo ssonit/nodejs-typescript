@@ -11,7 +11,7 @@ app.use(express.urlencoded({ extended: true }))
 
 databaseService.connect()
 
-app.use('/user', userRoute)
+app.use('/', userRoute)
 
 app.get('/', (req, res) => {
   res.send('Hello World!')

@@ -1,6 +1,5 @@
 import { Request, Response } from 'express'
-import User from '~/models/schemas/User.schema'
-import databaseService from '~/services/database.service'
+import { RegisterReqBody } from '~/models/requests/User.request'
 import userService from '~/services/user.service'
 
 export const loginController = (req: Request, res: Response) => {
@@ -14,13 +13,13 @@ export const loginController = (req: Request, res: Response) => {
 }
 
 export const registerController = async (req: Request, res: Response) => {
-  const { email, password } = req.body
+  const { email, password, name, date_of_birth } = req.body as RegisterReqBody
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' })
   }
 
   try {
-    const result = await userService.register({ email, password })
+    const result = await userService.register({ email, password, name, date_of_birth })
 
     return res.json({
       data: result,
