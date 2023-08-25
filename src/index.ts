@@ -2,6 +2,7 @@ import express from 'express'
 import dotenv from 'dotenv'
 import databaseService from './services/database.service'
 import userRoute from './routes/user.route'
+import errorHandler from './middlewares/error.middleware'
 
 dotenv.config()
 const app = express()
@@ -12,6 +13,8 @@ app.use(express.urlencoded({ extended: true }))
 databaseService.connect()
 
 app.use('/', userRoute)
+
+app.use(errorHandler)
 
 app.get('/', (req, res) => {
   res.send('Hello World!')

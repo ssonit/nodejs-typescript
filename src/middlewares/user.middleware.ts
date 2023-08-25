@@ -1,4 +1,7 @@
 import { checkSchema } from 'express-validator'
+import httpStatus from '~/constants/httpStatus'
+import { messages } from '~/constants/messages'
+import { ErrorWithStatus } from '~/models/errors'
 import userService from '~/services/user.service'
 import { validate } from '~/utils/validation'
 
@@ -8,7 +11,9 @@ export const registerValidator = validate(
       in: 'body',
       isString: true,
       trim: true,
-      notEmpty: true
+      notEmpty: {
+        errorMessage: messages.NAME_IS_REQUIRED
+      }
     },
     email: {
       in: 'body',
@@ -20,7 +25,7 @@ export const registerValidator = validate(
           const result = await userService.checkEmailExists(value)
 
           if (result) {
-            throw new Error('Email already exists')
+            throw new Error(messages.EMAIL_ALREADY_EXIST)
           }
           return true
         }

@@ -14,18 +14,11 @@ export const loginController = (req: Request, res: Response) => {
 
 export const registerController = async (req: Request, res: Response) => {
   const { email, password, name, date_of_birth } = req.body as RegisterReqBody
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required' })
-  }
 
-  try {
-    const result = await userService.register({ email, password, name, date_of_birth })
+  const result = await userService.register({ email, password, name, date_of_birth })
 
-    return res.json({
-      data: result,
-      message: 'Register successfully'
-    })
-  } catch (error) {
-    return res.status(400).json({ message: 'Registration failed', error })
-  }
+  return res.json({
+    data: result,
+    message: 'Register successfully'
+  })
 }
