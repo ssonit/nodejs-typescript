@@ -1,15 +1,17 @@
 import { Request, Response } from 'express'
+import { ObjectId } from 'mongodb'
 import { RegisterReqBody } from '~/models/requests/User.request'
 import userService from '~/services/user.service'
 
-export const loginController = (req: Request, res: Response) => {
-  const { email, password } = req.body
+export const loginController = async (req: Request, res: Response) => {
+  const user_id = req.user?._id as ObjectId
 
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required' })
-  }
+  const result = await userService.login(user_id.toString())
 
-  return res.status(200).json({ success: true })
+  return res.status(200).json({
+    message: 'Login success',
+    data: result
+  })
 }
 
 export const registerController = async (req: Request, res: Response) => {

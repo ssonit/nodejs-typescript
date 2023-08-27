@@ -1,7 +1,5 @@
 import { checkSchema } from 'express-validator'
-import httpStatus from '~/constants/httpStatus'
 import { messages } from '~/constants/messages'
-import { ErrorWithStatus } from '~/models/errors'
 import userService from '~/services/user.service'
 import { validate } from '~/utils/validation'
 
@@ -59,6 +57,44 @@ export const registerValidator = validate(
     date_of_birth: {
       in: 'body',
       isISO8601: true
+    }
+  })
+)
+
+export const loginValidator = validate(
+  checkSchema({
+    email: {
+      in: 'body',
+      isEmail: true,
+      trim: true,
+      notEmpty: true,
+      custom: {
+        options: async (value, { req }) => {
+          const result = await userService.findUserByEmail({ email: value, password: req.body.password })
+
+          if (!result) {
+            throw new Error(messages.EMAIL_OR_PASSWORD_INCORRECT)
+          }
+          req.user = result
+          return true
+        }
+      }
+    },
+    password: {
+      in: 'body',
+      isString: true,
+      notEmpty: true,
+      isStrongPassword: {
+        options: {
+          minLength: 6,
+          minLowercase: 1,
+          minUppercase: 1,
+          minNumbers: 1,
+          minSymbols: 1
+        },
+        errorMessage:
+          'Password must be at least 6 characters long, at least 1 lowercase letter, at least 1 uppercase letter, at least 1 number and 1 symbols'
+      }
     }
   })
 )
