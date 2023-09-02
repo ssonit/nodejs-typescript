@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
-import { RegisterReqBody } from '~/models/requests/User.request'
+import { LogoutReqBody, RegisterReqBody } from '~/models/requests/User.request'
 import userService from '~/services/user.service'
 
 export const loginController = async (req: Request, res: Response) => {
@@ -26,5 +26,9 @@ export const registerController = async (req: Request, res: Response) => {
 }
 
 export const logoutController = async (req: Request, res: Response) => {
-  return res.status(200).json({ message: 'Logout successfully' })
+  const { refresh_token } = req.body as LogoutReqBody
+
+  const result = await userService.logout(refresh_token)
+
+  return res.status(200).json({ message: result.message })
 }

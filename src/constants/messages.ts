@@ -7,5 +7,7 @@ export const messages = {
   USER_NOT_FOUND: 'User not found',
   EMAIL_OR_PASSWORD_INCORRECT: 'Email or password incorrect',
   ACCESS_TOKEN_REQUIRED: 'Access token required',
-  REFRESH_TOKEN_REQUIRED: 'Refresh token required'
+  REFRESH_TOKEN_REQUIRED: 'Refresh token required',
+  USED_REFRESH_TOKEN_OR_NOT_EXIST: 'Used refresh token or not exist',
+  LOGOUT_SUCCESS: 'Logout success'
 } as const
