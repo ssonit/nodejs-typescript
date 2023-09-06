@@ -123,7 +123,10 @@ export const accessTokenValidator = validate(
             }
 
             try {
-              const decoded_authorization = await verifyToken({ token: access_token })
+              const decoded_authorization = await verifyToken({
+                token: access_token,
+                privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string
+              })
 
               ;(req as Request).decoded_authorization = decoded_authorization
             } catch (error) {
@@ -149,11 +152,12 @@ export const refreshTokenValidator = validate(
         notEmpty: {
           errorMessage: messages.REFRESH_TOKEN_REQUIRED
         },
+        trim: true,
         custom: {
           options: async (value: string, { req }) => {
             try {
               const [decoded_refresh_token, refresh_token] = await Promise.all([
-                verifyToken({ token: value }),
+                verifyToken({ token: value, privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string }),
                 databaseService.refreshTokens.findOne({ token: value })
               ])
               if (!refresh_token) {
@@ -172,6 +176,31 @@ export const refreshTokenValidator = validate(
               }
               throw error
             }
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)
+
+export const verifyEmailValidator = validate(
+  checkSchema(
+    {
+      email_verify_token: {
+        notEmpty: {
+          errorMessage: messages.EMAIL_VERIFY_TOKEN_IS_REQUIRED
+        },
+        trim: true,
+        custom: {
+          options: async (value: string, { req }) => {
+            const decoded_email_verify_token = await verifyToken({
+              token: value,
+              privateKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string
+            })
+
+            ;(req as Request).decoded_email_verify_token = decoded_email_verify_token
             return true
           }
         }

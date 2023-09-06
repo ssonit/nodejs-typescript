@@ -1,6 +1,9 @@
 import { Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
-import { LogoutReqBody, RegisterReqBody } from '~/models/requests/User.request'
+import { UserVerifyStatus } from '~/constants/enums'
+import httpStatus from '~/constants/httpStatus'
+import { messages } from '~/constants/messages'
+import { LogoutReqBody, RegisterReqBody, TokenPayload } from '~/models/requests/User.request'
 import userService from '~/services/user.service'
 
 export const loginController = async (req: Request, res: Response) => {
@@ -15,9 +18,8 @@ export const loginController = async (req: Request, res: Response) => {
 }
 
 export const registerController = async (req: Request, res: Response) => {
-  const { email, password, name, date_of_birth } = req.body as RegisterReqBody
-
-  const result = await userService.register({ email, password, name, date_of_birth })
+  const data = req.body as RegisterReqBody
+  const result = await userService.register(data)
 
   return res.json({
     data: result,
@@ -31,4 +33,27 @@ export const logoutController = async (req: Request, res: Response) => {
   const result = await userService.logout(refresh_token)
 
   return res.status(200).json({ message: result.message })
+}
+
+export const verifyEmailController = async (req: Request, res: Response) => {
+  const { user_id } = req.decoded_email_verify_token as TokenPayload
+
+  const user = await userService.findUserById(user_id)
+  if (!user) {
+    return res.status(httpStatus.NOT_FOUND).json({
+      message: messages.USER_NOT_FOUND
+    })
+  }
+
+  if (user.verify === UserVerifyStatus.Verified) {
+    return res.json({
+      message: messages.EMAIL_VERIFIED
+    })
+  }
+
+  const result = await userService.verifyEmail(user_id)
+  return res.json({
+    message: messages.EMAIL_VERIFY_SUCCESS,
+    data: result
+  })
 }
