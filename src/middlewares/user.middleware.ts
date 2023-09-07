@@ -1,4 +1,4 @@
-import { checkSchema } from 'express-validator'
+import { ParamSchema, checkSchema } from 'express-validator'
 import { JsonWebTokenError } from 'jsonwebtoken'
 import { capitalize } from 'lodash'
 import httpStatus from '~/constants/httpStatus'
@@ -9,6 +9,37 @@ import userService from '~/services/user.service'
 import { verifyToken } from '~/utils/jwt'
 import { validate } from '~/utils/validation'
 import { Request } from 'express'
+
+const passwordSchema: ParamSchema = {
+  isString: true,
+  notEmpty: true,
+  isStrongPassword: {
+    options: {
+      minLength: 6,
+      minLowercase: 1,
+      minUppercase: 1,
+      minNumbers: 1,
+      minSymbols: 1
+    },
+    errorMessage:
+      'Password must be at least 6 characters long, at least 1 lowercase letter, at least 1 uppercase letter, at least 1 number and 1 symbols'
+  }
+}
+
+const confirmPasswordSchema: ParamSchema = {
+  isString: true,
+  notEmpty: true,
+  custom: {
+    options: (value, { req }) => value === req.body.password,
+    errorMessage: 'Passwords do not match'
+  }
+}
+
+const forgotPasswordTokenSchema: ParamSchema = {
+  isString: true,
+  notEmpty: true,
+  trim: true
+}
 
 export const registerValidator = validate(
   checkSchema(
@@ -35,29 +66,8 @@ export const registerValidator = validate(
           }
         }
       },
-      password: {
-        isString: true,
-        notEmpty: true,
-        isStrongPassword: {
-          options: {
-            minLength: 6,
-            minLowercase: 1,
-            minUppercase: 1,
-            minNumbers: 1,
-            minSymbols: 1
-          },
-          errorMessage:
-            'Password must be at least 6 characters long, at least 1 lowercase letter, at least 1 uppercase letter, at least 1 number and 1 symbols'
-        }
-      },
-      confirm_password: {
-        isString: true,
-        notEmpty: true,
-        custom: {
-          options: (value, { req }) => value === req.body.password,
-          errorMessage: 'Passwords do not match'
-        }
-      },
+      password: passwordSchema,
+      confirm_password: confirmPasswordSchema,
       date_of_birth: {
         isISO8601: true
       }
@@ -75,7 +85,7 @@ export const loginValidator = validate(
         notEmpty: true,
         custom: {
           options: async (value, { req }) => {
-            const result = await userService.findUserByEmail({ email: value, password: req.body.password })
+            const result = await userService.findUserByEmailAndPassword({ email: value, password: req.body.password })
 
             if (!result) {
               throw new Error(messages.EMAIL_OR_PASSWORD_INCORRECT)
@@ -205,6 +215,39 @@ export const verifyEmailValidator = validate(
           }
         }
       }
+    },
+    ['body']
+  )
+)
+
+export const emailValidator = validate(
+  checkSchema(
+    {
+      email: {
+        isEmail: true,
+        trim: true,
+        notEmpty: true
+      }
+    },
+    ['body']
+  )
+)
+
+export const forgotVerifyValidator = validate(
+  checkSchema(
+    {
+      forgot_verify_token: forgotPasswordTokenSchema
+    },
+    ['body']
+  )
+)
+
+export const resetPasswordValidator = validate(
+  checkSchema(
+    {
+      forgot_verify_token: forgotPasswordTokenSchema,
+      password: passwordSchema,
+      confirm_password: confirmPasswordSchema
     },
     ['body']
   )

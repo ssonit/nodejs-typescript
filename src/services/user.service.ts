@@ -45,6 +45,18 @@ class UserService {
       }
     })
   }
+  private generateForgotPasswordToken(payload: { user_id: string }) {
+    return signToken({
+      payload: {
+        user_id: payload.user_id,
+        token_type: TokenType.ForgotPasswordToken
+      },
+      privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string,
+      options: {
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRED_IN
+      }
+    })
+  }
   private signAccessAndRefreshToken(user_id: string) {
     return Promise.all([this.generateAccessToken({ user_id }), this.generateRefreshToken({ user_id })])
   }
@@ -126,6 +138,61 @@ class UserService {
       refresh_token
     }
   }
+  async resendVerifyEmail(user_id: string) {
+    const email_verify_token = await this.generateVerifyEmailToken({ user_id })
+    console.log('Gửi lại email với email verify token mới', email_verify_token)
+
+    await databaseService.users.updateOne(
+      {
+        _id: new ObjectId(user_id)
+      },
+      {
+        $set: {
+          email_verify_token
+        },
+        $currentDate: {
+          updated_at: true
+        }
+      }
+    )
+  }
+  async forgotPassword(user_id: string) {
+    const forgot_verify_token = await this.generateForgotPasswordToken({ user_id })
+
+    console.log('Gửi email cho user', forgot_verify_token)
+
+    await databaseService.users.updateOne(
+      {
+        _id: new ObjectId(user_id)
+      },
+      {
+        $set: {
+          forgot_verify_token
+        },
+        $currentDate: {
+          updated_at: true
+        }
+      }
+    )
+  }
+
+  async resetPassword(user_id: string, password: string) {
+    await databaseService.users.updateOne(
+      {
+        _id: new ObjectId(user_id)
+      },
+      {
+        $set: {
+          password: hashPassword(password),
+          forgot_verify_token: ''
+        },
+        $currentDate: {
+          updated_at: true
+        }
+      }
+    )
+  }
+
   async checkEmailExists(email: string) {
     const result = await databaseService.users.findOne({ email })
     return Boolean(result)
@@ -138,7 +205,12 @@ class UserService {
     return user
   }
 
-  async findUserByEmail({ email, password }: { email: string; password: string }) {
+  async findUserByEmail(email: string) {
+    const result = await databaseService.users.findOne({ email })
+
+    return result
+  }
+  async findUserByEmailAndPassword({ email, password }: { email: string; password: string }) {
     const result = await databaseService.users.findOne({ email, password: hashPassword(password) })
 
     return result

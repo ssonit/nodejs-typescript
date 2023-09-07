@@ -12,5 +12,11 @@ export const messages = {
   LOGOUT_SUCCESS: 'Logout success',
   EMAIL_VERIFY_TOKEN_IS_REQUIRED: 'Email verify token is required',
   EMAIL_VERIFIED: 'Email verified',
-  EMAIL_VERIFY_SUCCESS: 'Email verify success'
+  EMAIL_VERIFY_SUCCESS: 'Email verify success',
+  RESEND_VERIFY_EMAIL_SUCCESS: 'Resend verify email success',
+  CHECK_EMAIL_TO_RESET_PASSWORD: 'Check email to reset password',
+  FORGOT_VERIFY_TOKEN_INVALID: 'Forgot verify token invalid',
+  TOKEN_IS_INVALID: 'Token is invalid',
+  VERIFY_FORGOT_PASSWORD_SUCCESS: 'Verify forgot password success',
+  RESET_PASSWORD_SUCCESS: 'Reset password success'
 } as const
