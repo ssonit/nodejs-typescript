@@ -18,5 +18,6 @@ export const messages = {
   FORGOT_VERIFY_TOKEN_INVALID: 'Forgot verify token invalid',
   TOKEN_IS_INVALID: 'Token is invalid',
   VERIFY_FORGOT_PASSWORD_SUCCESS: 'Verify forgot password success',
-  RESET_PASSWORD_SUCCESS: 'Reset password success'
+  RESET_PASSWORD_SUCCESS: 'Reset password success',
+  USER_NOT_VERIFIED: 'User not verified'
 } as const

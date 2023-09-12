@@ -1,11 +1,13 @@
 import { Router } from 'express'
 import {
   forgotPasswordController,
+  getMeController,
   loginController,
   logoutController,
   registerController,
   resendVerifyEmailController,
   resetPasswordController,
+  updateMeController,
   verifyEmailController,
   verifyForgotPasswordController
 } from '~/controllers/user.controller'
@@ -17,6 +19,7 @@ import {
   refreshTokenValidator,
   registerValidator,
   resetPasswordValidator,
+  verifiedUserValidator,
   verifyEmailValidator
 } from '~/middlewares/user.middleware'
 import { wrapRequestHandler } from '~/utils/handlers'
@@ -92,5 +95,22 @@ router.post('/verify-forgot-password', forgotVerifyValidator, wrapRequestHandler
  */
 
 router.post('/reset-password', resetPasswordValidator, wrapRequestHandler(resetPasswordController))
+
+/**
+ * path: /me
+ * method: GET
+ * headers: {'Authorization': 'Bearer ' + 'token'}
+ */
+
+router.get('/me', accessTokenValidator, wrapRequestHandler(getMeController))
+
+/**
+ * path: /me
+ * method: PATCH
+ * headers: {'Authorization': 'Bearer ' + 'token'}
+ * body: UserSchema
+ */
+
+router.patch('/me', accessTokenValidator, verifiedUserValidator, wrapRequestHandler(updateMeController))
 
 export default router

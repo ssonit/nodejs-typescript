@@ -8,12 +8,18 @@ import RefreshToken from '~/models/schemas/RefreshToken.schema'
 import { ObjectId } from 'mongodb'
 import { messages } from '~/constants/messages'
 
+type TPayload = {
+  user_id: string
+  verify: UserVerifyStatus
+}
+
 class UserService {
-  private generateAccessToken(payload: { user_id: string }) {
+  private generateAccessToken(payload: TPayload) {
     return signToken({
       payload: {
         user_id: payload.user_id,
-        token_type: TokenType.AccessToken
+        token_type: TokenType.AccessToken,
+        verify: payload.verify
       },
       privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string,
       options: {
@@ -21,11 +27,12 @@ class UserService {
       }
     })
   }
-  private generateRefreshToken(payload: { user_id: string }) {
+  private generateRefreshToken(payload: TPayload) {
     return signToken({
       payload: {
         user_id: payload.user_id,
-        token_type: TokenType.RefreshToken
+        token_type: TokenType.RefreshToken,
+        verify: payload.verify
       },
       privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string,
       options: {
@@ -33,11 +40,12 @@ class UserService {
       }
     })
   }
-  private generateVerifyEmailToken(payload: { user_id: string }) {
+  private generateVerifyEmailToken(payload: TPayload) {
     return signToken({
       payload: {
         user_id: payload.user_id,
-        token_type: TokenType.EmailVerifyToken
+        token_type: TokenType.EmailVerifyToken,
+        verify: payload.verify
       },
       privateKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string,
       options: {
@@ -45,11 +53,12 @@ class UserService {
       }
     })
   }
-  private generateForgotPasswordToken(payload: { user_id: string }) {
+  private generateForgotPasswordToken(payload: TPayload) {
     return signToken({
       payload: {
         user_id: payload.user_id,
-        token_type: TokenType.ForgotPasswordToken
+        token_type: TokenType.ForgotPasswordToken,
+        verify: payload.verify
       },
       privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string,
       options: {
@@ -57,13 +66,13 @@ class UserService {
       }
     })
   }
-  private signAccessAndRefreshToken(user_id: string) {
-    return Promise.all([this.generateAccessToken({ user_id }), this.generateRefreshToken({ user_id })])
+  private signAccessAndRefreshToken(payload: TPayload) {
+    return Promise.all([this.generateAccessToken(payload), this.generateRefreshToken(payload)])
   }
   async register(payload: RegisterReqBody) {
     const user_id = new ObjectId().toString()
 
-    const email_verify_token = await this.generateVerifyEmailToken({ user_id })
+    const email_verify_token = await this.generateVerifyEmailToken({ user_id, verify: UserVerifyStatus.Unverified })
 
     console.log('Gửi email xác thực cho người dùng ', email_verify_token, user_id)
 
@@ -77,7 +86,10 @@ class UserService {
       })
     )
 
-    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
+      user_id,
+      verify: UserVerifyStatus.Unverified
+    })
 
     await databaseService.refreshTokens.insertOne(
       new RefreshToken({
@@ -92,8 +104,8 @@ class UserService {
       refresh_token
     }
   }
-  async login(user_id: string) {
-    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
+  async login({ user_id, verify }: TPayload) {
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken({ user_id, verify })
     await databaseService.refreshTokens.insertOne(
       new RefreshToken({
         user: new ObjectId(user_id),
@@ -115,7 +127,7 @@ class UserService {
   }
   async verifyEmail(user_id: string) {
     const [token] = await Promise.all([
-      this.signAccessAndRefreshToken(user_id),
+      this.signAccessAndRefreshToken({ user_id, verify: UserVerifyStatus.Verified }),
       databaseService.users.updateOne(
         {
           _id: new ObjectId(user_id)
@@ -139,7 +151,7 @@ class UserService {
     }
   }
   async resendVerifyEmail(user_id: string) {
-    const email_verify_token = await this.generateVerifyEmailToken({ user_id })
+    const email_verify_token = await this.generateVerifyEmailToken({ user_id, verify: UserVerifyStatus.Unverified })
     console.log('Gửi lại email với email verify token mới', email_verify_token)
 
     await databaseService.users.updateOne(
@@ -156,8 +168,8 @@ class UserService {
       }
     )
   }
-  async forgotPassword(user_id: string) {
-    const forgot_verify_token = await this.generateForgotPasswordToken({ user_id })
+  async forgotPassword({ user_id, verify }: TPayload) {
+    const forgot_verify_token = await this.generateForgotPasswordToken({ user_id, verify })
 
     console.log('Gửi email cho user', forgot_verify_token)
 
@@ -202,6 +214,23 @@ class UserService {
     const user = await databaseService.users.findOne({
       _id: new ObjectId(user_id)
     })
+    return user
+  }
+
+  async getMe(user_id: string) {
+    const user = await databaseService.users.findOne(
+      {
+        _id: new ObjectId(user_id)
+      },
+
+      {
+        projection: {
+          password: 0,
+          email_verify_token: 0,
+          forgot_verify_token: 0
+        }
+      }
+    )
     return user
   }
 

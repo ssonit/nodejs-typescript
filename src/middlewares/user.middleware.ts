@@ -8,7 +8,9 @@ import databaseService from '~/services/database.service'
 import userService from '~/services/user.service'
 import { verifyToken } from '~/utils/jwt'
 import { validate } from '~/utils/validation'
-import { Request } from 'express'
+import { NextFunction, Request, Response } from 'express'
+import { TokenPayload } from '~/models/requests/User.request'
+import { UserVerifyStatus } from '~/constants/enums'
 
 const passwordSchema: ParamSchema = {
   isString: true,
@@ -252,3 +254,18 @@ export const resetPasswordValidator = validate(
     ['body']
   )
 )
+
+export const verifiedUserValidator = (req: Request, res: Response, next: NextFunction) => {
+  const { verify } = req.decoded_authorization as TokenPayload
+
+  if (verify !== UserVerifyStatus.Verified) {
+    return next(
+      new ErrorWithStatus({
+        message: messages.USER_NOT_VERIFIED,
+        status: httpStatus.FORBIDDEN
+      })
+    )
+  }
+
+  next()
+}

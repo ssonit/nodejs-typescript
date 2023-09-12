@@ -11,13 +11,15 @@ import {
   TokenPayload,
   VerifyForgotPasswordReqBody
 } from '~/models/requests/User.request'
+import User from '~/models/schemas/User.schema'
 import userService from '~/services/user.service'
 import { verifyToken } from '~/utils/jwt'
 
 export const loginController = async (req: Request, res: Response) => {
-  const user_id = req.user?._id as ObjectId
+  const { _id, verify } = req.user as User
+  const user_id = _id as ObjectId
 
-  const result = await userService.login(user_id.toString())
+  const result = await userService.login({ user_id: user_id.toString(), verify })
 
   return res.status(200).json({
     message: 'Login success',
@@ -101,8 +103,9 @@ export const forgotPasswordController = async (req: Request, res: Response) => {
   }
 
   const user_id = user._id.toString()
+  const verify = user.verify
 
-  await userService.forgotPassword(user_id)
+  await userService.forgotPassword({ user_id, verify })
   return res.json({
     message: messages.CHECK_EMAIL_TO_RESET_PASSWORD
   })
@@ -150,5 +153,25 @@ export const resetPasswordController = async (req: Request, res: Response) => {
 
   return res.json({
     message: messages.RESET_PASSWORD_SUCCESS
+  })
+}
+
+export const getMeController = async (req: Request, res: Response) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+
+  const user = await userService.getMe(user_id)
+
+  if (!user) {
+    return res.status(httpStatus.NOT_FOUND).json({
+      message: messages.USER_NOT_FOUND
+    })
+  }
+
+  return res.json({ message: 'Get me success', data: user })
+}
+
+export const updateMeController = async (req: Request, res: Response) => {
+  return res.json({
+    message: 'Update me success'
   })
 }
