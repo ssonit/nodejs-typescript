@@ -19,5 +19,8 @@ export const messages = {
   TOKEN_IS_INVALID: 'Token is invalid',
   VERIFY_FORGOT_PASSWORD_SUCCESS: 'Verify forgot password success',
   RESET_PASSWORD_SUCCESS: 'Reset password success',
-  USER_NOT_VERIFIED: 'User not verified'
+  USER_NOT_VERIFIED: 'User not verified',
+  USERNAME_INVALID:
+    'Username must be 4-15 characters long and contain only letters and numbers and underscores, not only numbers and underscores',
+  USERNAME_EXISTS: 'Username already exists'
 } as const

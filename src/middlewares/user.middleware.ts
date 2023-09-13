@@ -11,6 +11,8 @@ import { validate } from '~/utils/validation'
 import { NextFunction, Request, Response } from 'express'
 import { TokenPayload } from '~/models/requests/User.request'
 import { UserVerifyStatus } from '~/constants/enums'
+import { ObjectId } from 'mongodb'
+import { REGEX_USERNAME } from '~/constants/regex'
 
 const passwordSchema: ParamSchema = {
   isString: true,
@@ -37,22 +39,50 @@ const confirmPasswordSchema: ParamSchema = {
   }
 }
 
+const nameSchema: ParamSchema = {
+  isString: true,
+  trim: true,
+  notEmpty: {
+    errorMessage: messages.NAME_IS_REQUIRED
+  }
+}
+
+const dateOfBirthSchema: ParamSchema = {
+  isISO8601: {
+    options: {
+      strict: true,
+      strictSeparator: true
+    }
+  }
+}
+
 const forgotPasswordTokenSchema: ParamSchema = {
   isString: true,
   notEmpty: true,
   trim: true
 }
 
+const followUserIdSchema: ParamSchema = {
+  custom: {
+    options: async (value: string) => {
+      const follow = await databaseService.followers.findOne({
+        _id: new ObjectId(value)
+      })
+
+      if (!follow) {
+        throw new ErrorWithStatus({
+          message: messages.USER_NOT_FOUND,
+          status: httpStatus.NOT_FOUND
+        })
+      }
+    }
+  }
+}
+
 export const registerValidator = validate(
   checkSchema(
     {
-      name: {
-        isString: true,
-        trim: true,
-        notEmpty: {
-          errorMessage: messages.NAME_IS_REQUIRED
-        }
-      },
+      name: nameSchema,
       email: {
         isEmail: true,
         trim: true,
@@ -70,9 +100,7 @@ export const registerValidator = validate(
       },
       password: passwordSchema,
       confirm_password: confirmPasswordSchema,
-      date_of_birth: {
-        isISO8601: true
-      }
+      date_of_birth: dateOfBirthSchema
     },
     ['body']
   )
@@ -269,3 +297,111 @@ export const verifiedUserValidator = (req: Request, res: Response, next: NextFun
 
   next()
 }
+
+export const updateMeValidator = validate(
+  checkSchema(
+    {
+      name: {
+        ...nameSchema,
+        optional: true,
+        notEmpty: false
+      },
+      date_of_birth: {
+        ...dateOfBirthSchema,
+        optional: true
+      },
+      bio: {
+        isString: true,
+        optional: true,
+        isLength: {
+          options: {
+            max: 200,
+            min: 1
+          }
+        },
+        trim: true
+      },
+      location: {
+        isString: true,
+        optional: true,
+        isLength: {
+          options: {
+            max: 200,
+            min: 1
+          }
+        },
+        trim: true
+      },
+      website: {
+        isString: true,
+        optional: true,
+        isLength: {
+          options: {
+            max: 200,
+            min: 1
+          }
+        },
+        trim: true
+      },
+      username: {
+        isString: true,
+        optional: true,
+        custom: {
+          options: async (value: string) => {
+            if (!REGEX_USERNAME.test(value)) {
+              throw new Error(messages.USERNAME_INVALID)
+            }
+
+            const user = await databaseService.users.findOne({ username: value })
+            if (user) {
+              throw new Error(messages.USERNAME_EXISTS)
+            }
+            return true
+          }
+        },
+        trim: true
+      },
+      avatar: {
+        isString: true,
+        optional: true,
+        isLength: {
+          options: {
+            max: 200,
+            min: 1
+          }
+        },
+        trim: true
+      },
+      cover_photo: {
+        isString: true,
+        optional: true,
+        isLength: {
+          options: {
+            max: 200,
+            min: 1
+          }
+        },
+        trim: true
+      }
+    },
+    ['body']
+  )
+)
+
+export const followValidator = validate(
+  checkSchema(
+    {
+      followed_user_id: followUserIdSchema
+    },
+    ['body']
+  )
+)
+
+export const unfollowValidator = validate(
+  checkSchema(
+    {
+      user_id: followUserIdSchema
+    },
+    ['params']
+  )
+)

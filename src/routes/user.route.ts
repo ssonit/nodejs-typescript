@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import {
+  followController,
   forgotPasswordController,
   getMeController,
   loginController,
@@ -7,6 +8,7 @@ import {
   registerController,
   resendVerifyEmailController,
   resetPasswordController,
+  unfollowController,
   updateMeController,
   verifyEmailController,
   verifyForgotPasswordController
@@ -14,11 +16,14 @@ import {
 import {
   accessTokenValidator,
   emailValidator,
+  followValidator,
   forgotVerifyValidator,
   loginValidator,
   refreshTokenValidator,
   registerValidator,
   resetPasswordValidator,
+  unfollowValidator,
+  updateMeValidator,
   verifiedUserValidator,
   verifyEmailValidator
 } from '~/middlewares/user.middleware'
@@ -111,6 +116,45 @@ router.get('/me', accessTokenValidator, wrapRequestHandler(getMeController))
  * body: UserSchema
  */
 
-router.patch('/me', accessTokenValidator, verifiedUserValidator, wrapRequestHandler(updateMeController))
+router.patch(
+  '/me',
+  accessTokenValidator,
+  verifiedUserValidator,
+  updateMeValidator,
+  wrapRequestHandler(updateMeController)
+)
+
+/**
+ * path: /follow
+ * method: POST
+ * headers: {'Authorization': 'Bearer ' + 'token'}
+ * body: { followed_user_id: string }
+ */
+
+router.post(
+  '/follow',
+  accessTokenValidator,
+  verifiedUserValidator,
+  followValidator,
+  wrapRequestHandler(followController)
+)
+
+/**
+ * path: /follow/user_id
+ * method: DELETE
+ * headers: {'Authorization': 'Bearer ' + 'token'}
+ */
+
+router.delete(
+  '/follow/:user_id',
+  accessTokenValidator,
+  verifiedUserValidator,
+  unfollowValidator,
+  wrapRequestHandler(unfollowController)
+)
+
+/**
+ * path: /change-password
+ */
 
 export default router

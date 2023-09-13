@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { pick } from 'lodash'
 import { ObjectId } from 'mongodb'
 import { UserVerifyStatus } from '~/constants/enums'
 import httpStatus from '~/constants/httpStatus'
@@ -9,6 +10,7 @@ import {
   RegisterReqBody,
   ResetPasswordReqBody,
   TokenPayload,
+  UpdateMeReqBody,
   VerifyForgotPasswordReqBody
 } from '~/models/requests/User.request'
 import User from '~/models/schemas/User.schema'
@@ -171,7 +173,43 @@ export const getMeController = async (req: Request, res: Response) => {
 }
 
 export const updateMeController = async (req: Request, res: Response) => {
-  return res.json({
-    message: 'Update me success'
+  const body = req.body as UpdateMeReqBody
+  const payload = pick(body, [
+    'avatar',
+    'bio',
+    'cover_photo',
+    'date_of_birth',
+    'location',
+    'name',
+    'username',
+    'website'
+  ])
+  const { user_id } = req.decoded_authorization as TokenPayload
+
+  const user = await userService.updateMe({
+    user_id,
+    payload
   })
+  return res.json({
+    message: 'Update me success',
+    data: user
+  })
+}
+
+export const followController = async (req: Request, res: Response) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const { followed_user_id } = req.body as { followed_user_id: string }
+
+  const result = await userService.follow(user_id, followed_user_id)
+
+  return res.json(result)
+}
+
+export const unfollowController = async (req: Request, res: Response) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const { user_id: followed_user_id } = req.params as { user_id: string }
+
+  const result = await userService.unfollow(user_id, followed_user_id)
+
+  return res.json(result)
 }
