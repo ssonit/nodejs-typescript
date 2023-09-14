@@ -1,3 +1,4 @@
+import { config } from 'dotenv'
 import { Request, Response } from 'express'
 import { pick } from 'lodash'
 import { ObjectId } from 'mongodb'
@@ -17,6 +18,8 @@ import User from '~/models/schemas/User.schema'
 import userService from '~/services/user.service'
 import { verifyToken } from '~/utils/jwt'
 
+config()
+
 export const loginController = async (req: Request, res: Response) => {
   const { _id, verify } = req.user as User
   const user_id = _id as ObjectId
@@ -27,6 +30,19 @@ export const loginController = async (req: Request, res: Response) => {
     message: 'Login success',
     data: result
   })
+}
+
+export const oauthGoogleController = async (req: Request, res: Response) => {
+  const { code } = req.query
+
+  const result = await userService.oauthGoogle(code as string)
+  const url_redirect = `${process.env.CLIENT_REDIRECT_CALLBACK_URL}?access_token=${result.access_token}&refresh_token=${result.refresh_token}&new_user=${result.newUser}&verify=${result.verify}`
+
+  return res.redirect(url_redirect)
+  // return res.json({
+  //   message: 'OAuth Google Success',
+  //   data: result
+  // })
 }
 
 export const registerController = async (req: Request, res: Response) => {
