@@ -1,19 +1,24 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import databaseService from './services/database.service'
-import userRoute from './routes/user.route'
+import userRouter from './routes/user.route'
+import mediaRouter from './routes/media.route'
 import errorHandler from './middlewares/error.middleware'
+import { initFolder } from './utils/file'
 
 dotenv.config()
 const app = express()
 const port = 4000
+
+initFolder()
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 databaseService.connect()
 
-app.use('/', userRoute)
+app.use('/', userRouter)
+app.use('/media', mediaRouter)
 
 app.use(errorHandler)
 
