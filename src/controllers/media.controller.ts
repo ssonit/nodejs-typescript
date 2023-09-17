@@ -1,23 +1,20 @@
 import { Request, Response } from 'express'
-import path from 'path'
+import mediaService from '~/services/media.service'
 
 export const uploadImageController = async (req: Request, res: Response) => {
-  const formidable = (await import('formidable')).default
-  const form = formidable({
-    uploadDir: path.resolve('uploads'),
-    maxFiles: 1,
-    keepExtensions: true,
-    maxFileSize: 300 * 1024 // 300KB
-  })
+  const result = await mediaService.uploadImage(req)
 
-  form.parse(req, (err, fields, files) => {
-    if (err) {
-      throw err
-    }
-
-    return res.json({
-      message: 'Uploading image'
-    })
+  return res.json({
+    message: 'Uploaded image success',
+    data: result
   })
-  return res.json('success')
+}
+
+export const uploadVideoController = async (req: Request, res: Response) => {
+  const result = await mediaService.uploadVideo(req)
+
+  return res.json({
+    message: 'Uploaded video success',
+    data: result
+  })
 }

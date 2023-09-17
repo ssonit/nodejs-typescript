@@ -3,6 +3,7 @@ import dotenv from 'dotenv'
 import databaseService from './services/database.service'
 import userRouter from './routes/user.route'
 import mediaRouter from './routes/media.route'
+import serveRouter from './routes/serve.route'
 import errorHandler from './middlewares/error.middleware'
 import { initFolder } from './utils/file'
 
@@ -19,6 +20,10 @@ databaseService.connect()
 
 app.use('/', userRouter)
 app.use('/media', mediaRouter)
+app.use('/static', serveRouter)
+
+// app.use('/static/video', express.static(UPLOAD_VIDEO_DIR))
+// app.use('/static/image', express.static(UPLOAD_DIR))
 
 app.use(errorHandler)
 
