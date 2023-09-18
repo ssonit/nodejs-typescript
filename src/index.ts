@@ -6,6 +6,7 @@ import mediaRouter from './routes/media.route'
 import serveRouter from './routes/serve.route'
 import errorHandler from './middlewares/error.middleware'
 import { initFolder } from './utils/file'
+import { UPLOAD_VIDEO_DIR } from './constants/dir'
 
 dotenv.config()
 const app = express()
@@ -21,9 +22,7 @@ databaseService.connect()
 app.use('/', userRouter)
 app.use('/media', mediaRouter)
 app.use('/static', serveRouter)
-
-// app.use('/static/video', express.static(UPLOAD_VIDEO_DIR))
-// app.use('/static/image', express.static(UPLOAD_DIR))
+app.use('/static/video', express.static(UPLOAD_VIDEO_DIR))
 
 app.use(errorHandler)
 

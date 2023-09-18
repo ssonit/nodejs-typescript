@@ -1,10 +1,10 @@
 import { Router } from 'express'
-import { serveImageController, serveVideoController } from '~/controllers/serve.controller'
+import { serveImageController, serveVideoStreamController } from '~/controllers/serve.controller'
 
 const router = Router()
 
 router.get('/image/:name', serveImageController)
 
-router.get('/video/:name', serveVideoController)
+router.get('/video-stream/:name', serveVideoStreamController)
 
 export default router
