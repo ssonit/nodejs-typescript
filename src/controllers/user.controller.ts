@@ -8,6 +8,7 @@ import { messages } from '~/constants/messages'
 import {
   ForgotPasswordReqBody,
   LogoutReqBody,
+  RefreshTokenReqBody,
   RegisterReqBody,
   ResetPasswordReqBody,
   TokenPayload,
@@ -61,6 +62,15 @@ export const logoutController = async (req: Request, res: Response) => {
   const result = await userService.logout(refresh_token)
 
   return res.status(200).json({ message: result.message })
+}
+
+export const refreshTokenController = async (req: Request, res: Response) => {
+  const { refresh_token } = req.body as RefreshTokenReqBody
+  const { user_id, verify } = req.decoded_refresh_token as TokenPayload
+
+  const result = await userService.refreshToken({ user_id, verify, refresh_token })
+
+  return res.status(200).json({ message: 'Refresh token success', data: result })
 }
 
 export const verifyEmailController = async (req: Request, res: Response) => {

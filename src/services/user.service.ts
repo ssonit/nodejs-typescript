@@ -106,7 +106,6 @@ class UserService {
     )
 
     return {
-      user_id,
       access_token,
       refresh_token
     }
@@ -121,7 +120,6 @@ class UserService {
     )
 
     return {
-      user_id,
       access_token,
       refresh_token
     }
@@ -218,6 +216,36 @@ class UserService {
     await databaseService.refreshTokens.deleteOne({ token: refresh_token })
     return {
       message: messages.LOGOUT_SUCCESS
+    }
+  }
+
+  async refreshToken({
+    refresh_token,
+    user_id,
+    verify
+  }: {
+    user_id: string
+    verify: UserVerifyStatus
+    refresh_token: string
+  }) {
+    // Không xóa dựa trên user_id vì người dùng có thể đăng nhập ở nhiều máy khác nhau nên trong refresh_token có thể có nhiều user_id trùng nhau
+
+    const [new_access_token, new_refresh_token] = await Promise.all([
+      this.generateAccessToken({ user_id, verify }),
+      this.generateRefreshToken({ user_id, verify }),
+      databaseService.refreshTokens.deleteOne({ token: refresh_token })
+    ])
+
+    await databaseService.refreshTokens.insertOne(
+      new RefreshToken({
+        token: new_refresh_token,
+        user: new ObjectId(user_id)
+      })
+    )
+
+    return {
+      access_token: new_access_token,
+      refresh_token: new_refresh_token
     }
   }
   async verifyEmail(user_id: string) {

@@ -6,6 +6,7 @@ import {
   loginController,
   logoutController,
   oauthGoogleController,
+  refreshTokenController,
   registerController,
   resendVerifyEmailController,
   resetPasswordController,
@@ -65,6 +66,14 @@ router.post('/register', registerValidator, wrapRequestHandler(registerControlle
  */
 
 router.post('/logout', accessTokenValidator, refreshTokenValidator, wrapRequestHandler(logoutController))
+
+/**
+ * path: /refresh-token
+ * method: POST
+ * body: {refresh_token: string}
+ */
+
+router.post('/refresh-token', refreshTokenValidator, wrapRequestHandler(refreshTokenController))
 
 /**
  * path: /verify-email
