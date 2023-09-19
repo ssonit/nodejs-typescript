@@ -29,8 +29,8 @@ export const serveVideoStreamController = (req: Request, res: Response) => {
 
   const start = Number(range.replace(/\D/g, ''))
 
-  const end = Math.min(start + chunkSize, videoSize)
-  const contentLength = end - start
+  const end = Math.min(start + chunkSize, videoSize - 1)
+  const contentLength = end - start + 1
   const contentType = mime.getType(videoPath) || 'video/*'
 
   const headers = {
@@ -39,6 +39,14 @@ export const serveVideoStreamController = (req: Request, res: Response) => {
     'Content-Length': contentLength,
     'Content-Type': contentType
   }
+
+  /**
+   * chunkSize = 50
+   * videoSize = 100
+   * |0----------50|51----------99|100 (end)
+   * stream 1: start = 0, end = 50, contentLength = 51
+   * stream 2: start = 51, end = 99, contentLength = 49
+   */
 
   res.writeHead(httpStatus.PARTIAL_CONTENT, headers)
 
