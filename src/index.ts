@@ -17,7 +17,11 @@ initFolder()
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-databaseService.connect()
+databaseService.connect().then(() => {
+  databaseService.indexUsers()
+  databaseService.indexRefreshTokens()
+  databaseService.indexFollowers()
+})
 
 app.use('/', userRouter)
 app.use('/media', mediaRouter)

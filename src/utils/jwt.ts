@@ -7,15 +7,16 @@ config()
 export const signToken = ({
   payload,
   privateKey,
-  options = {
-    expiresIn: '1d'
-  }
+  options = {}
 }: {
   payload: any
   privateKey: string
   options?: SignOptions
 }) => {
   return new Promise<string>((resolve, reject) => {
+    // if (payload.exp) {
+    //   delete options.expiresIn
+    // }
     jwt.sign(payload, privateKey, options, (err, token) => {
       if (err) return reject(err)
       return resolve(token as string)
