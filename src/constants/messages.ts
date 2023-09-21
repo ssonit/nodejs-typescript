@@ -24,3 +24,11 @@ export const messages = {
     'Username must be 4-15 characters long and contain only letters and numbers and underscores, not only numbers and underscores',
   USERNAME_EXISTS: 'Username already exists'
 } as const
+
+export const TWEET_MESSAGES = {
+  INVALID_TYPE: 'Invalid type',
+  PARENT_ID_MUST_BE_VALID_TWEET_ID: 'Parent id must be valid tweet id',
+  PARENT_ID_MUST_BE_NULL: 'Parent id must be null',
+  CONTENT_MUST_BE_A_NON_EMPTY_STRING: 'Content must be a non-empty string',
+  CONTENT_MUST_BE_EMPTY_STRING: 'Content must be empty string'
+} as const

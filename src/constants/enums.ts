@@ -15,3 +15,15 @@ export enum MediaType {
   Image,
   Video
 }
+
+export enum TweetType {
+  Tweet,
+  Retweet,
+  Comment, //ReplyTweet
+  QuoteTweet
+}
+
+export enum TweetAudience {
+  Everyone,
+  TweeterCircle
+}
