@@ -5,6 +5,8 @@ import userRouter from './routes/user.route'
 import mediaRouter from './routes/media.route'
 import serveRouter from './routes/serve.route'
 import tweetRouter from './routes/tweet.route'
+import bookmarkRouter from './routes/bookmark.route'
+import likeRouter from './routes/like.route'
 import errorHandler from './middlewares/error.middleware'
 import { initFolder } from './utils/file'
 import { UPLOAD_VIDEO_DIR } from './constants/dir'
@@ -27,6 +29,8 @@ databaseService.connect().then(() => {
 app.use('/', userRouter)
 app.use('/media', mediaRouter)
 app.use('/tweet', tweetRouter)
+app.use('/bookmark', bookmarkRouter)
+app.use('/like', likeRouter)
 app.use('/static', serveRouter)
 app.use('/static/video', express.static(UPLOAD_VIDEO_DIR))
 
