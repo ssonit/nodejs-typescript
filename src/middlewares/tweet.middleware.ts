@@ -139,7 +139,25 @@ export const tweetIdValidator = validate(
                 message: 'Invalid tweet id'
               })
             }
-            const tweet = await databaseService.tweets.findOne({ _id: new ObjectId(value) })
+            // const tweet = await databaseService.tweets.findOne({ _id: new ObjectId(value) })
+
+            const [tweet] = await databaseService.tweets
+              .aggregate<Tweet>([
+                {
+                  $match: {
+                    _id: new ObjectId(value)
+                  }
+                },
+                {
+                  $lookup: {
+                    from: 'hashtags', // collection name
+                    localFields: 'hashtags', // field in tweets
+                    foreignFields: '_id',
+                    as: 'hashtags'
+                  }
+                }
+              ])
+              .toArray()
 
             if (!tweet) {
               throw new ErrorWithStatus({
