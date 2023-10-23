@@ -185,7 +185,15 @@ class TweetService {
         }
       ])
       .toArray()
-    return tweets
+
+    const total = await databaseService.tweets.countDocuments({
+      parent_id: new ObjectId(tweet_id),
+      type: tweet_type
+    })
+    return {
+      tweets,
+      total
+    }
   }
 }
 
